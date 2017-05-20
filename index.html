@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title> The TV Show Giphy Page</title>
+</head>
+
+<body>
+    <div id="buttons">
+        <!-- buttons will appear here -->
+    </div>
+    <br>
+    <!-- this is where the user will type in their own movie to be added to the buttons and gifs divs -->
+    <form id="tv-form">
+        <label for="tv-input">Add a TV show! </label>
+        <input type="text" id="tv-input">
+        <br>
+        <!-- Button triggers new tv show to be added -->
+        <input id="add-tv" type="submit" value="Submit">
+    </form>
+    <br>
+    <div id="gifs">
+        <!-- gifs and ratings will appear here -->
+    </div>
+    
+    <script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script type="text/javascript">
+    //create array of TV show topics
+    var topics = ["Jane the Virgin", "Crazy Ex Girlfriend", "Parks and Rec", "30 Rock", "Friends", "Supernatural", "Gilmore Girls", "Community", "The Fresh Prince of Bel Air"];
+
+    console.log(topics);
+
+
+    //create a for loop that:
+    //creates buttons for each topic and places them onto the page
+     for (var i = 0; i < topics.length; i++) {
+        $("#buttons").append("<button data-TV='" + topics[i] + "'>" + topics[i] + "</button>");
+    }
+
+
+
+ //this function handles events where the 'add-tv' button is clicked
+    $("#add-tv").on("click", function(event) {
+                //prevent the buttons default behavior when clicked (submitting the form)
+                event.preventDefault();
+
+                //grab the value from the 'tv-input' field
+
+                var tvShowAdded = $("#tv-input").val().trim();
+                console.log(tvShowAdded);
+
+                //adding the tv show from the input to our array
+
+                topics.push(tvShowAdded);
+
+
+                //calling the response function
+                
+
+
+
+            });
+
+    //execute the AJAX call to be an on-click event
+
+
+    $("button").on("click", function() {
+        //set the tvShow variable
+        //set the queryURL variable
+        var tvShow = $(this).attr("data-TV");
+        var queryURL = "http://api.giphy.com/v1/gifs/search?q=" + tvShow + "&api_key=dc6zaTOxFJmzC&limit=10";
+
+
+
+        console.log(tvShow);
+        //set the .done function that will call the API to retrieve the gifs and their rating for each TV show in the array
+
+        $.ajax({
+            url: queryURL,
+            method: "GET"
+        })
+
+        .done(function(response) {
+
+
+            //set the var for the data retrieved from the API
+            var results = response.data;
+
+            //create a for loop to run through the results data (that has a limit set to 10)
+            for (var i = 0; i < results.length; i++) {
+                //create a variable so that each gif created has it's own div w/a class
+                var gifDiv = $("<div class='item'>");
+
+                //create a variable for the gif rating
+                var rating = results[i].rating;
+
+                //create a p tag where for the rating to live on the page
+                var p = $("<p>").text("Rating: " + rating);
+
+                //create a variable for the TV show image and attribute the image data pulled from the API call
+                var tvShowImage = $("<img>");
+                tvShowImage.attr("src", results[i].images.fixed_height.url);
+                tvShowImage.attr("data-state", "still");
+                tvShowImage.attr("data-still", results[i].images.fixed_height.url);
+                tvShowImage.attr("data-animate", results[i].images.fixed_height_still.url);
+
+
+                console.log(tvShowImage);
+
+
+                //append the rating and tvShowInage to the gif div created above
+                tvShowImage.addClass("gifstart");
+                gifDiv.prepend(p);
+                gifDiv.prepend(tvShowImage);
+
+                console.log(gifDiv);
+
+                //display the gif and ratings on the page
+                $("#gifs").prepend(gifDiv);
+
+                //create on-click function that allows the user to pause and start the gif
+
+
+            };
+
+            //function that allows the user to pause and start the gifs
+            $(".gifstart").on("click", function(event) {
+
+                //set variable for the data-state
+                var state = $(this).attr("data-state");
+                console.log(state);
+
+                // if the clicked image's state is still, update its src attribute to what its data-animate value is then, set the image's data-state to animate
+                if (state === "still") {
+                    $(this).attr("src", $(this).attr("data-animate"));
+                    $(this).attr("data-state", "animate");
+                }
+
+                //else set src to the data-still value
+                else {
+                    $(this).attr("src", $(this).attr("data-still"));
+                    $(this).attr("data-state", "still");
+                }
+
+                console.log(this);
+            });
+
+
+
+        });
+
+    });
+    </script>
+</body>
+
+</html>
